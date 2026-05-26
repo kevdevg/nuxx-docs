@@ -14,27 +14,25 @@
 <link rel="apple-touch-icon" sizes="180x180" href="https://assets.nuxx.app/nux/favicon/apple-touch-icon.png" />
 <link rel="manifest" href="https://assets.nuxx.app/nux/favicon/site.webmanifest" />
 
-<!-- Fonts: Montserrat (headings/brand) + Inter (UI/body) + JetBrains Mono (code editor) -->
+<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 
 <style>
 /* ============================================
-   NUX Design System — Design Tokens
+   Design Tokens
    ============================================ */
 :root {
-  /* Core Palette */
   --nux-purple: #3C004F;
   --nux-yellow: #FFC700;
   --nux-dark: #1a0b2e;
   --nux-light: #f3f4f6;
-
-  /* Semantic tokens (dark mode default) */
   --bg-primary: var(--nux-dark);
   --bg-surface: rgba(60, 0, 79, 0.45);
   --bg-editor: #120822;
   --bg-header: rgba(60, 0, 79, 0.72);
+  --bg-card: rgba(60, 0, 79, 0.35);
   --text-primary: #f3f4f6;
   --text-secondary: #a78bba;
   --text-muted: #6b5280;
@@ -43,56 +41,62 @@
   --accent: var(--nux-yellow);
   --accent-glow: rgba(255, 199, 0, 0.15);
   --shadow-header: 0 1px 24px rgba(60, 0, 79, 0.45), 0 1px 0 rgba(255, 199, 0, 0.06);
-  --preview-bg: #ffffff;
-
-  /* Radii */
+  --focus-border: var(--nux-yellow);
+  --focus-ring: rgba(255, 199, 0, 0.1);
+  --danger: #f43f5e;
+  --danger-glow: rgba(244, 63, 94, 0.12);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-
-  /* Transitions */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 0.15s var(--ease-out);
   --transition-normal: 0.25s var(--ease-out);
 }
 
-/* Light mode overrides */
 [data-theme="light"] {
   --bg-primary: #f0edf4;
   --bg-surface: rgba(255, 255, 255, 0.7);
   --bg-editor: #ffffff;
   --bg-header: rgba(255, 255, 255, 0.82);
+  --bg-card: rgba(255, 255, 255, 0.85);
   --text-primary: #1a0b2e;
   --text-secondary: #6b5280;
   --text-muted: #a78bba;
   --border-subtle: rgba(60, 0, 79, 0.1);
   --border-hover: rgba(60, 0, 79, 0.25);
   --shadow-header: 0 1px 24px rgba(60, 0, 79, 0.08), 0 1px 0 rgba(60, 0, 79, 0.04);
-  --preview-bg: #ffffff;
+  --focus-border: var(--nux-purple);
+  --focus-ring: rgba(60, 0, 79, 0.1);
 }
 
 /* ============================================
-   Base Reset
+   Reset
    ============================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
-
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background var(--transition-normal), color var(--transition-normal);
 }
 
 /* ============================================
-   Header Bar — Glassmorphism
+   Views
+   ============================================ */
+.view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+.view.hidden { display: none; }
+
+/* ============================================
+   Header — Glassmorphism
    ============================================ */
 header {
   display: flex;
@@ -109,8 +113,6 @@ header {
   z-index: 10;
   transition: background var(--transition-normal), box-shadow var(--transition-normal);
 }
-
-/* Brand */
 .brand {
   display: flex;
   align-items: center;
@@ -123,16 +125,13 @@ header {
   width: auto;
   transition: transform var(--transition-normal);
 }
-.brand:hover .brand-logo {
-  transform: scale(1.06);
-}
+.brand:hover .brand-logo { transform: scale(1.06); }
 .brand-name {
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  transition: color var(--transition-fast);
 }
 .brand-tag {
   font-family: 'Inter', sans-serif;
@@ -147,11 +146,10 @@ header {
   line-height: 1;
   margin-left: -4px;
 }
-
 .spacer { flex: 1; }
 
 /* ============================================
-   Buttons — NUX System
+   Buttons
    ============================================ */
 button {
   font-family: 'Inter', sans-serif;
@@ -165,19 +163,14 @@ button {
   cursor: pointer;
   transition: all var(--transition-fast);
   letter-spacing: 0.01em;
-  position: relative;
-  overflow: hidden;
+  white-space: nowrap;
 }
 button:hover {
   border-color: var(--border-hover);
   color: var(--accent);
   background: var(--accent-glow);
 }
-button:active {
-  transform: scale(0.96);
-}
-
-/* Primary button */
+button:active { transform: scale(0.96); }
 button.primary {
   background: var(--nux-yellow);
   color: var(--nux-purple);
@@ -198,21 +191,18 @@ button.primary:active {
   transform: scale(0.96) translateY(0);
   box-shadow: 0 1px 6px rgba(255, 199, 0, 0.15);
 }
-
-button:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  transform: none !important;
+button.danger {
+  color: var(--danger);
+  border-color: rgba(244, 63, 94, 0.3);
 }
-button:disabled:hover {
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
-  background: transparent;
-  box-shadow: none;
-  transform: none;
+button.danger:hover {
+  background: var(--danger-glow);
+  border-color: var(--danger);
+  color: var(--danger);
 }
+button:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+button:disabled:hover { border-color: var(--border-subtle); color: var(--text-primary); background: transparent; box-shadow: none; }
 
-/* Theme Toggle */
 .theme-toggle {
   display: flex;
   align-items: center;
@@ -220,22 +210,256 @@ button:disabled:hover {
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
   font-size: 16px;
   line-height: 1;
-  cursor: pointer;
-  transition: all var(--transition-fast);
 }
-.theme-toggle:hover {
-  border-color: var(--border-hover);
-  background: var(--accent-glow);
-  transform: rotate(20deg) scale(1.05);
+.theme-toggle:hover { transform: rotate(20deg) scale(1.05); }
+
+/* ============================================
+   Inputs
+   ============================================ */
+.input-field {
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding: 10px 14px;
+  background: var(--bg-editor);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.input-field::placeholder { color: var(--text-muted); }
+.input-field:focus {
+  border-color: var(--focus-border);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 /* ============================================
-   URL Pill — Published link
+   LOGIN VIEW
    ============================================ */
+.login-view {
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  padding: 20px;
+}
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 48px 32px 40px;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeSlideIn 0.4s var(--ease-out);
+}
+.login-logo { height: 48px; margin-bottom: 20px; }
+.login-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.login-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+.login-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  font-size: 14px;
+}
+.login-error {
+  font-size: 12px;
+  color: var(--danger);
+  margin-top: 14px;
+  min-height: 18px;
+}
+
+/* ============================================
+   DASHBOARD VIEW
+   ============================================ */
+.dash-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+.search-input {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  padding: 7px 14px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  outline: none;
+  width: 200px;
+  transition: all var(--transition-fast);
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus { border-color: var(--accent); width: 280px; }
+
+/* Document Grid */
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.doc-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: all var(--transition-fast);
+  animation: fadeSlideIn 0.3s var(--ease-out);
+}
+.doc-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 4px 24px rgba(255, 199, 0, 0.06);
+  transform: translateY(-2px);
+}
+.doc-card-name {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+.doc-card-slug {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.doc-card-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.doc-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+.doc-card-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 5px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+.doc-card-link:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+.empty-state.hidden { display: none; }
+.empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.empty-state p { color: var(--text-secondary); margin-bottom: 24px; }
+
+/* ============================================
+   EDITOR VIEW
+   ============================================ */
+.name-bar {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.name-group { flex: 1; min-width: 0; }
+.slug-group { flex: 0 0 auto; min-width: 180px; }
+.name-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.name-input {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+.slug-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+}
+.slug-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.slug-edit-btn {
+  padding: 2px 6px;
+  font-size: 12px;
+  border: none !important;
+  background: transparent !important;
+}
+.slug-input { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.slug-input.hidden { display: none; }
+
+/* Status */
+.status {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+.status.error { color: var(--danger); }
+.status.success { color: #34d399; }
+
+.kbd {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 3px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
 .url-pill {
   font-size: 11px;
   color: var(--text-secondary);
@@ -251,11 +475,7 @@ button:disabled:hover {
   animation: fadeSlideIn 0.3s var(--ease-out);
 }
 .url-pill.show { display: flex; }
-.url-pill .link-icon {
-  color: var(--accent);
-  font-size: 13px;
-  flex-shrink: 0;
-}
+.url-pill .link-icon { color: var(--accent); font-size: 13px; flex-shrink: 0; }
 .url-pill a {
   color: var(--accent);
   text-decoration: none;
@@ -265,57 +485,21 @@ button:disabled:hover {
   font-weight: 500;
 }
 .url-pill a:hover { text-decoration: underline; }
-.copy-btn {
-  font-size: 10px;
-  padding: 3px 10px;
-  color: var(--text-muted);
-  border-radius: 6px;
-}
+.copy-btn { font-size: 10px; padding: 3px 10px; color: var(--text-muted); border-radius: 6px; }
 
-/* ============================================
-   Status — Micro-label pattern
-   ============================================ */
-.status {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  white-space: nowrap;
-  transition: color var(--transition-fast);
-}
-.status.error { color: #f43f5e; }
-.status.success { color: #34d399; }
-
-/* Keyboard shortcut badge */
-.kbd {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  color: var(--text-muted);
-  padding: 3px 7px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
-  letter-spacing: 0.02em;
-}
-
-/* ============================================
-   Main Layout — Split Pane
-   ============================================ */
+/* Editor Panes */
 main {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 6px 1fr;
   min-height: 0;
 }
-
 .pane {
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
-
 .pane-label {
   position: absolute;
   top: 12px;
@@ -330,8 +514,6 @@ main {
   z-index: 2;
   opacity: 0.7;
 }
-
-/* Editor textarea */
 .editor {
   flex: 1;
   width: 100%;
@@ -348,21 +530,12 @@ main {
   caret-color: var(--accent);
   transition: background var(--transition-normal), color var(--transition-normal);
 }
-.editor::selection {
-  background: rgba(255, 199, 0, 0.2);
-  color: inherit;
-}
+.editor::selection { background: rgba(255, 199, 0, 0.2); color: inherit; }
 .editor::-webkit-scrollbar { width: 8px; }
 .editor::-webkit-scrollbar-track { background: transparent; }
-.editor::-webkit-scrollbar-thumb {
-  background: rgba(167, 139, 186, 0.25);
-  border-radius: 4px;
-}
-.editor::-webkit-scrollbar-thumb:hover {
-  background: rgba(167, 139, 186, 0.45);
-}
+.editor::-webkit-scrollbar-thumb { background: rgba(167, 139, 186, 0.25); border-radius: 4px; }
+.editor::-webkit-scrollbar-thumb:hover { background: rgba(167, 139, 186, 0.45); }
 
-/* Divider / Splitter */
 .divider {
   background: var(--border-subtle);
   cursor: col-resize;
@@ -380,52 +553,24 @@ main {
   background: var(--text-muted);
   border-radius: 2px;
   opacity: 0.4;
-  transition: opacity var(--transition-fast), height var(--transition-fast);
+  transition: opacity var(--transition-fast);
 }
-.divider:hover,
-.divider.dragging {
+.divider:hover, .divider.dragging {
   background: var(--accent);
   box-shadow: 0 0 12px var(--accent-glow);
 }
-.divider:hover::after,
-.divider.dragging::after {
-  opacity: 0;
-}
+.divider:hover::after, .divider.dragging::after { opacity: 0; }
 
-/* Preview pane */
-.preview-wrap {
-  background: var(--preview-bg);
-  border-left: none;
-}
-.preview-frame {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: #fff;
-  display: block;
-}
+.preview-wrap { background: #ffffff; }
+.preview-frame { flex: 1; width: 100%; height: 100%; border: none; background: #fff; display: block; }
 
 /* ============================================
    Animations
    ============================================ */
 @keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 199, 0, 0); }
-  50% { box-shadow: 0 0 16px 2px rgba(255, 199, 0, 0.15); }
-}
-
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -434,95 +579,151 @@ main {
 }
 
 /* ============================================
-   Responsive — Mobile
+   Responsive
    ============================================ */
 @media (max-width: 760px) {
-  header {
-    gap: 8px;
-    padding: 0 10px;
-    height: 48px;
-  }
+  header { gap: 8px; padding: 0 10px; height: 48px; }
   .brand-name { font-size: 13px; }
   .brand-tag { display: none; }
   .kbd { display: none; }
   .url-pill { display: none !important; }
-
-  main {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 6px 1fr;
-  }
-  .divider {
-    cursor: row-resize;
-  }
-  .divider::after {
-    width: 32px;
-    height: 2px;
-  }
-  .pane-label {
-    top: 8px;
-    right: 12px;
-  }
-  button {
-    padding: 8px 14px;
-    font-size: 11px;
-  }
-  button.primary {
-    padding: 8px 16px;
-  }
+  .search-input { width: 120px; }
+  .search-input:focus { width: 160px; }
+  main { grid-template-columns: 1fr; grid-template-rows: 1fr 6px 1fr; }
+  .divider { cursor: row-resize; }
+  .divider::after { width: 32px; height: 2px; }
+  button { padding: 7px 12px; font-size: 11px; }
+  button.primary { padding: 7px 14px; }
+  .name-bar { flex-direction: column; gap: 8px; align-items: stretch; }
+  .slug-group { min-width: 0; }
+  .doc-grid { grid-template-columns: 1fr; }
 }
-
 @media (max-width: 480px) {
   .brand-logo { height: 22px; }
   .status { display: none; }
+  .search-input { display: none; }
 }
 </style>
 </head>
 <body>
-<header>
-  <a class="brand" href="/" title="Nuxx docs — Inicio">
-    <img src="https://assets.nuxx.app/nux/logo.png" alt="Nuxx" class="brand-logo" />
-    <span class="brand-name">Nuxx docs</span>
-    <span class="brand-tag">editor</span>
-  </a>
-  <div class="status" id="status">borrador local</div>
-  <div class="url-pill" id="urlPill">
-    <span class="link-icon">⛓</span>
-    <a id="urlLink" href="#" target="_blank" rel="noopener"></a>
-    <button class="copy-btn" id="copyBtn">copiar</button>
+
+<!-- ═══════════════ LOGIN VIEW ═══════════════ -->
+<section id="loginView" class="view login-view">
+  <div class="login-card">
+    <img src="https://assets.nuxx.app/nux/logo.png" alt="Nuxx" class="login-logo" />
+    <h1 class="login-title">Nuxx docs</h1>
+    <p class="login-subtitle">Ingresa tu token para continuar</p>
+    <input type="password" id="tokenInput" class="input-field" placeholder="Token de acceso" autocomplete="off" />
+    <button id="loginBtn" class="primary login-btn">Ingresar →</button>
+    <p id="loginError" class="login-error"></p>
   </div>
-  <div class="spacer"></div>
-  <span class="kbd">⌘/Ctrl + ↵</span>
-  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">🌙</button>
-  <button id="newBtn" title="Nuevo borrador">nuevo</button>
-  <button class="primary" id="publishBtn">publicar →</button>
-</header>
-<main id="main">
-  <div class="pane">
-    <span class="pane-label">html</span>
-    <textarea id="editor" class="editor" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+</section>
+
+<!-- ═══════════════ DASHBOARD VIEW ═══════════════ -->
+<section id="dashView" class="view hidden">
+  <header>
+    <a class="brand" href="/">
+      <img src="https://assets.nuxx.app/nux/logo.png" alt="Nuxx" class="brand-logo" />
+      <span class="brand-name">Nuxx docs</span>
+      <span class="brand-tag">dashboard</span>
+    </a>
+    <div class="spacer"></div>
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar..." />
+    <button class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">🌙</button>
+    <button id="logoutBtn">cerrar sesión</button>
+    <button class="primary" id="newDocBtn">+ nuevo</button>
+  </header>
+  <div class="dash-content">
+    <div id="docGrid" class="doc-grid"></div>
+    <div id="emptyState" class="empty-state hidden">
+      <div class="empty-icon">📄</div>
+      <h2>Sin documentos</h2>
+      <p>Crea tu primer documento para empezar.</p>
+      <button class="primary" id="emptyNewBtn">+ Crear documento</button>
+    </div>
   </div>
-  <div class="divider" id="divider" role="separator" aria-label="Redimensionar paneles"></div>
-  <div class="pane preview-wrap">
-    <span class="pane-label" style="color: #999">preview</span>
-    <iframe id="preview" class="preview-frame" sandbox="allow-scripts allow-forms" title="Vista previa del HTML"></iframe>
+</section>
+
+<!-- ═══════════════ EDITOR VIEW ═══════════════ -->
+<section id="editView" class="view hidden">
+  <header>
+    <a class="brand" href="/" id="brandLink">
+      <img src="https://assets.nuxx.app/nux/logo.png" alt="Nuxx" class="brand-logo" />
+      <span class="brand-name">Nuxx docs</span>
+      <span class="brand-tag">editor</span>
+    </a>
+    <div class="status" id="status">nuevo documento</div>
+    <div class="url-pill" id="urlPill">
+      <span class="link-icon">⛓</span>
+      <a id="urlLink" href="#" target="_blank" rel="noopener"></a>
+      <button class="copy-btn" id="copyBtn">copiar</button>
+    </div>
+    <div class="spacer"></div>
+    <span class="kbd">⌘/Ctrl + ↵</span>
+    <button class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">🌙</button>
+    <button id="backBtn">← docs</button>
+    <button class="danger" id="deleteBtn" style="display:none">eliminar</button>
+    <button class="primary" id="publishBtn">publicar →</button>
+  </header>
+  <div class="name-bar">
+    <div class="name-group">
+      <label for="docName" class="name-label">Nombre del documento</label>
+      <input type="text" id="docName" class="input-field name-input" placeholder="Ej: Arquitectura del sistema" />
+    </div>
+    <div class="slug-group" id="slugGroup">
+      <label class="name-label">Slug</label>
+      <div class="slug-display" id="slugDisplay">
+        <span id="slugPreview" class="slug-text">se genera automáticamente</span>
+        <button id="slugEditBtn" class="slug-edit-btn" title="Personalizar slug">✏️</button>
+      </div>
+      <input type="text" id="slugInput" class="input-field slug-input hidden" placeholder="mi-documento" />
+    </div>
   </div>
-</main>
+  <main id="main">
+    <div class="pane">
+      <span class="pane-label">html</span>
+      <textarea id="editor" class="editor" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+    </div>
+    <div class="divider" id="divider" role="separator" aria-label="Redimensionar paneles"></div>
+    <div class="pane preview-wrap">
+      <span class="pane-label" style="color: #999">preview</span>
+      <iframe id="preview" class="preview-frame" sandbox="allow-scripts allow-forms" title="Vista previa del HTML"></iframe>
+    </div>
+  </main>
+</section>
+
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
+
+  // ── DOM References ────────────────────────────
+  const views = { login: $('loginView'), dash: $('dashView'), edit: $('editView') };
+  let currentView = 'login';
+
+  // Editor elements
   const editor = $('editor');
   const preview = $('preview');
-  const status = $('status');
+  const statusEl = $('status');
   const publishBtn = $('publishBtn');
-  const newBtn = $('newBtn');
+  const deleteBtn = $('deleteBtn');
+  const backBtn = $('backBtn');
   const urlPill = $('urlPill');
   const urlLink = $('urlLink');
   const copyBtn = $('copyBtn');
   const divider = $('divider');
-  const main = $('main');
-  const themeToggle = $('themeToggle');
+  const mainEl = $('main');
+  const docNameInput = $('docName');
+  const slugPreview = $('slugPreview');
+  const slugDisplay = $('slugDisplay');
+  const slugInput = $('slugInput');
+  const slugEditBtn = $('slugEditBtn');
 
-  // ── Theme Management ──────────────────────────
+  // Dashboard elements
+  const docGrid = $('docGrid');
+  const emptyState = $('emptyState');
+  const searchInput = $('searchInput');
+
+  // ── Theme ─────────────────────────────────────
   function getPreferredTheme() {
     const stored = localStorage.getItem('nuxxdocs_theme');
     if (stored) return stored;
@@ -530,24 +731,214 @@ main {
   }
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    const icon = theme === 'dark' ? '🌙' : '☀️';
+    document.querySelectorAll('.theme-toggle').forEach(btn => btn.textContent = icon);
     localStorage.setItem('nuxxdocs_theme', theme);
   }
   applyTheme(getPreferredTheme());
 
-  themeToggle.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    applyTheme(current === 'dark' ? 'light' : 'dark');
+  document.querySelectorAll('.theme-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+    });
   });
 
-  // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('nuxxdocs_theme')) {
-      applyTheme(e.matches ? 'light' : 'dark');
+  // ── Auth ──────────────────────────────────────
+  function getToken() { return localStorage.getItem('nuxxdocs_token'); }
+  function setToken(t) { localStorage.setItem('nuxxdocs_token', t); }
+  function clearToken() { localStorage.removeItem('nuxxdocs_token'); }
+  function authHeaders(json) {
+    const h = {};
+    if (json) h['Content-Type'] = 'application/json';
+    const t = getToken();
+    if (t) h['Authorization'] = 'Bearer ' + t;
+    return h;
+  }
+
+  // ── View Management ───────────────────────────
+  function showView(name) {
+    Object.entries(views).forEach(([k, v]) => v.classList.toggle('hidden', k !== name));
+    currentView = name;
+    document.body.style.overflow = name === 'edit' ? 'hidden' : '';
+  }
+
+  // ── Helpers ───────────────────────────────────
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+  function escapeAttr(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch { return iso; }
+  }
+  function slugifyClient(s) {
+    return s.toLowerCase().trim()
+      .replace(/[áàâä]/g, 'a').replace(/[éèêë]/g, 'e').replace(/[íìîï]/g, 'i')
+      .replace(/[óòôö]/g, 'o').replace(/[úùûü]/g, 'u').replace(/ñ/g, 'n').replace(/ç/g, 'c')
+      .replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
+  }
+  function setStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status' + (type ? ' ' + type : '');
+  }
+
+  // ── Router ────────────────────────────────────
+  async function route() {
+    const path = location.pathname;
+
+    // Verify auth first
+    try {
+      const r = await fetch('/api/verify', { headers: authHeaders() });
+      if (!r.ok) {
+        clearToken();
+        showView('login');
+        return;
+      }
+    } catch {
+      showView('login');
+      return;
+    }
+
+    const editMatch = path.match(/^\/e\/([a-zA-Z0-9_-]+)$/);
+    if (editMatch) {
+      await loadEditor(editMatch[1]);
+    } else {
+      await loadDashboard();
+    }
+  }
+
+  window.addEventListener('popstate', () => route());
+
+  // ── LOGIN ─────────────────────────────────────
+  async function login() {
+    const token = $('tokenInput').value.trim();
+    if (!token) return;
+    setToken(token);
+    $('loginError').textContent = '';
+    $('loginBtn').disabled = true;
+    try {
+      const r = await fetch('/api/verify', { headers: authHeaders() });
+      if (r.ok) {
+        await route();
+      } else {
+        clearToken();
+        $('loginError').textContent = 'Token inválido';
+      }
+    } catch {
+      $('loginError').textContent = 'Error de conexión';
+    } finally {
+      $('loginBtn').disabled = false;
+    }
+  }
+
+  $('loginBtn').addEventListener('click', login);
+  $('tokenInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+  });
+
+  // ── DASHBOARD ─────────────────────────────────
+  let allDocs = [];
+
+  async function loadDashboard() {
+    try {
+      const r = await fetch('/api/list', { headers: authHeaders() });
+      if (r.status === 401) { clearToken(); showView('login'); return; }
+      if (!r.ok) throw new Error('fetch failed');
+      allDocs = await r.json();
+    } catch {
+      allDocs = [];
+    }
+    renderDocs(allDocs);
+    showView('dash');
+  }
+
+  function renderDocs(docs) {
+    if (docs.length === 0) {
+      docGrid.innerHTML = '';
+      docGrid.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    docGrid.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+
+    docGrid.innerHTML = docs.map(doc => `
+      <div class="doc-card" data-slug="${escapeAttr(doc.slug)}" data-name="${escapeAttr(doc.name)}">
+        <h3 class="doc-card-name">${escapeHtml(doc.name)}</h3>
+        <span class="doc-card-slug">/${escapeHtml(doc.slug)}</span>
+        <div class="doc-card-meta">
+          <span>Creado: ${formatDate(doc.created_at)}</span>
+          <span>Editado: ${formatDate(doc.updated_at)}</span>
+        </div>
+        <div class="doc-card-actions">
+          <a href="/p/${encodeURIComponent(doc.slug)}" target="_blank" class="doc-card-link">Ver ↗</a>
+          <button class="doc-card-edit">Editar</button>
+          <button class="danger doc-card-delete">Eliminar</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Event delegation for dashboard cards
+  docGrid.addEventListener('click', (e) => {
+    const card = e.target.closest('.doc-card');
+    if (!card) return;
+    const slug = card.dataset.slug;
+    const name = card.dataset.name;
+
+    if (e.target.closest('.doc-card-edit')) {
+      history.pushState(null, '', '/e/' + slug);
+      loadEditor(slug);
+    } else if (e.target.closest('.doc-card-delete')) {
+      deleteDoc(slug, name);
     }
   });
 
-  // ── Default HTML ──────────────────────────────
+  // Search / filter
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase();
+    if (!q) { renderDocs(allDocs); return; }
+    renderDocs(allDocs.filter(d => d.name.toLowerCase().includes(q) || d.slug.toLowerCase().includes(q)));
+  });
+
+  async function deleteDoc(slug, name) {
+    if (!confirm(`¿Eliminar "${name}"?\nEsta acción no se puede deshacer.`)) return;
+    try {
+      const r = await fetch('/api/delete/' + slug, { method: 'DELETE', headers: authHeaders() });
+      if (r.ok) {
+        await loadDashboard();
+      } else {
+        alert('Error al eliminar el documento');
+      }
+    } catch {
+      alert('Error de conexión');
+    }
+  }
+
+  // New document buttons
+  $('newDocBtn').addEventListener('click', () => loadEditor(null));
+  $('emptyNewBtn').addEventListener('click', () => loadEditor(null));
+
+  // Logout
+  $('logoutBtn').addEventListener('click', () => {
+    clearToken();
+    showView('login');
+    $('tokenInput').value = '';
+    $('loginError').textContent = '';
+  });
+
+  // ── EDITOR ────────────────────────────────────
+  let currentSlug = null;
+  let dirty = false;
+  let customSlugMode = false;
+
   const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -565,28 +956,99 @@ main {
 </body>
 </html>`;
 
-  const editMatch = location.pathname.match(/^\/e\/([a-zA-Z0-9_-]+)$/);
-  let currentSlug = editMatch ? editMatch[1] : null;
-  let dirty = false;
+  async function loadEditor(slug) {
+    currentSlug = slug || null;
+    dirty = false;
+    customSlugMode = false;
+    slugInput.classList.add('hidden');
+    slugDisplay.classList.remove('hidden');
 
-  function setStatus(msg, type) {
-    status.textContent = msg;
-    status.className = 'status' + (type ? ' ' + type : '');
+    if (currentSlug) {
+      setStatus('cargando…');
+      try {
+        const [rawR, metaR] = await Promise.all([
+          fetch('/api/raw/' + currentSlug, { headers: authHeaders() }),
+          fetch('/api/doc/' + currentSlug, { headers: authHeaders() })
+        ]);
+        if (!rawR.ok) throw new Error('not found');
+        editor.value = await rawR.text();
+        if (metaR.ok) {
+          const meta = await metaR.json();
+          docNameInput.value = meta.name || '';
+          slugPreview.textContent = meta.slug;
+        } else {
+          docNameInput.value = '';
+          slugPreview.textContent = currentSlug;
+        }
+        deleteBtn.style.display = '';
+        slugEditBtn.style.display = 'none';
+        urlLink.href = location.origin + '/p/' + currentSlug;
+        urlLink.textContent = location.origin + '/p/' + currentSlug;
+        urlPill.classList.add('show');
+        setStatus('editando · ' + currentSlug, 'success');
+      } catch {
+        resetEditor();
+        setStatus('documento no encontrado', 'error');
+      }
+    } else {
+      resetEditor();
+    }
+    showView('edit');
+    render();
   }
 
-  // ── Live Preview ──────────────────────────────
+  function resetEditor() {
+    currentSlug = null;
+    dirty = false;
+    customSlugMode = false;
+    editor.value = DEFAULT_HTML;
+    docNameInput.value = '';
+    slugPreview.textContent = 'se genera automáticamente';
+    slugInput.value = '';
+    slugInput.classList.add('hidden');
+    slugDisplay.classList.remove('hidden');
+    slugEditBtn.style.display = '';
+    deleteBtn.style.display = 'none';
+    urlPill.classList.remove('show');
+    setStatus('nuevo documento');
+  }
+
+  // Slug auto-preview from name
+  docNameInput.addEventListener('input', () => {
+    dirty = true;
+    if (!currentSlug && !customSlugMode) {
+      const s = slugifyClient(docNameInput.value);
+      slugPreview.textContent = s || 'se genera automáticamente';
+    }
+  });
+
+  // Custom slug toggle
+  slugEditBtn.addEventListener('click', () => {
+    customSlugMode = true;
+    slugDisplay.classList.add('hidden');
+    slugInput.classList.remove('hidden');
+    slugInput.value = slugifyClient(docNameInput.value);
+    slugInput.focus();
+  });
+  slugInput.addEventListener('blur', () => {
+    if (!slugInput.value.trim()) {
+      customSlugMode = false;
+      slugInput.classList.add('hidden');
+      slugDisplay.classList.remove('hidden');
+    }
+  });
+
+  // Live preview
   let renderTimer = null;
   function scheduleRender() {
     if (renderTimer) clearTimeout(renderTimer);
     renderTimer = setTimeout(render, 180);
   }
-  function render() {
-    preview.srcdoc = editor.value;
-  }
+  function render() { preview.srcdoc = editor.value; }
 
   editor.addEventListener('input', () => {
     dirty = true;
-    setStatus(currentSlug ? 'editando ' + currentSlug + ' · sin guardar' : 'borrador local');
+    setStatus(currentSlug ? 'editando · sin guardar' : 'nuevo · sin guardar');
     scheduleRender();
   });
 
@@ -605,44 +1067,48 @@ main {
     }
   });
 
-  // ── Publish ───────────────────────────────────
+  // Publish
   async function publish() {
-    if (!editor.value.trim()) {
-      setStatus('vacío', 'error');
-      return;
-    }
+    const html = editor.value.trim();
+    const name = docNameInput.value.trim();
+    if (!html) { setStatus('HTML vacío', 'error'); return; }
+    if (!name) { setStatus('nombre requerido', 'error'); docNameInput.focus(); return; }
+
     publishBtn.disabled = true;
     setStatus('publicando…');
+
     try {
-      const headers = { 'Content-Type': 'application/json' };
-      const token = localStorage.getItem('htmlpaste_token');
-      if (token) headers['Authorization'] = 'Bearer ' + token;
-      const body = JSON.stringify({
-        html: editor.value,
-        slug: currentSlug || undefined,
-      });
-      const r = await fetch('/api/publish', { method: 'POST', headers, body });
-      if (r.status === 401) {
-        localStorage.removeItem('htmlpaste_token');
-        const t = prompt('Este servidor requiere un token de publicación:');
-        if (t) {
-          localStorage.setItem('htmlpaste_token', t.trim());
-          publishBtn.disabled = false;
-          return publish();
-        }
-        throw new Error('token requerido');
+      const payload = { html: editor.value, name };
+      if (currentSlug) {
+        payload.slug = currentSlug;
+      } else if (customSlugMode && slugInput.value.trim()) {
+        payload.slug = slugInput.value.trim();
       }
+
+      const r = await fetch('/api/publish', {
+        method: 'POST',
+        headers: authHeaders(true),
+        body: JSON.stringify(payload)
+      });
+
+      if (r.status === 401) { clearToken(); showView('login'); return; }
       if (!r.ok) {
         const txt = await r.text();
         throw new Error(txt.trim() || ('http ' + r.status));
       }
+
       const data = await r.json();
       currentSlug = data.slug;
       dirty = false;
+      slugPreview.textContent = data.slug;
+      slugEditBtn.style.display = 'none';
+      slugInput.classList.add('hidden');
+      slugDisplay.classList.remove('hidden');
+      deleteBtn.style.display = '';
       urlLink.href = data.url;
       urlLink.textContent = data.url;
       urlPill.classList.add('show');
-      setStatus('publicado · ' + currentSlug, 'success');
+      setStatus('publicado · ' + data.slug, 'success');
       history.replaceState(null, '', '/e/' + data.slug);
     } catch (err) {
       setStatus('error: ' + err.message, 'error');
@@ -652,30 +1118,49 @@ main {
   }
   publishBtn.addEventListener('click', publish);
 
-  // ── New Draft ─────────────────────────────────
-  newBtn.addEventListener('click', () => {
-    if (dirty && !confirm('¿descartar cambios sin publicar?')) return;
-    currentSlug = null;
-    dirty = false;
-    editor.value = DEFAULT_HTML;
-    urlPill.classList.remove('show');
-    setStatus('borrador local');
-    history.replaceState(null, '', '/');
-    render();
+  // Delete from editor
+  deleteBtn.addEventListener('click', async () => {
+    if (!currentSlug) return;
+    const name = docNameInput.value || currentSlug;
+    if (!confirm(`¿Eliminar "${name}"?\nEsta acción no se puede deshacer.`)) return;
+    try {
+      const r = await fetch('/api/delete/' + currentSlug, { method: 'DELETE', headers: authHeaders() });
+      if (r.ok) {
+        history.pushState(null, '', '/');
+        await loadDashboard();
+      } else {
+        setStatus('error al eliminar', 'error');
+      }
+    } catch {
+      setStatus('error de conexión', 'error');
+    }
   });
 
-  // ── Copy URL ──────────────────────────────────
+  // Back to dashboard
+  backBtn.addEventListener('click', goToDash);
+  $('brandLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    goToDash();
+  });
+
+  function goToDash() {
+    if (dirty && !confirm('¿Descartar cambios sin publicar?')) return;
+    currentSlug = null;
+    dirty = false;
+    history.pushState(null, '', '/');
+    loadDashboard();
+  }
+
+  // Copy URL
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(urlLink.href);
       copyBtn.textContent = '¡copiado!';
       setTimeout(() => copyBtn.textContent = 'copiar', 1500);
-    } catch (e) {
-      urlLink.focus();
-    }
+    } catch { urlLink.focus(); }
   });
 
-  // ── Splitter Drag ─────────────────────────────
+  // Splitter drag
   let dragging = false;
   divider.addEventListener('mousedown', (e) => {
     dragging = true;
@@ -686,9 +1171,9 @@ main {
   });
   document.addEventListener('mousemove', (e) => {
     if (!dragging) return;
-    const rect = main.getBoundingClientRect();
+    const rect = mainEl.getBoundingClientRect();
     const pct = Math.max(15, Math.min(85, ((e.clientX - rect.left) / rect.width) * 100));
-    main.style.gridTemplateColumns = pct + '% 6px ' + (100 - pct) + '%';
+    mainEl.style.gridTemplateColumns = pct + '% 6px ' + (100 - pct) + '%';
   });
   document.addEventListener('mouseup', () => {
     if (!dragging) return;
@@ -698,7 +1183,7 @@ main {
     document.body.style.userSelect = '';
   });
 
-  // Touch support for mobile splitter
+  // Touch support
   divider.addEventListener('touchstart', (e) => {
     dragging = true;
     divider.classList.add('dragging');
@@ -706,15 +1191,14 @@ main {
   }, { passive: false });
   document.addEventListener('touchmove', (e) => {
     if (!dragging) return;
-    const rect = main.getBoundingClientRect();
+    const rect = mainEl.getBoundingClientRect();
     const touch = e.touches[0];
-    // Mobile: vertical split
     if (window.innerWidth <= 760) {
       const pct = Math.max(15, Math.min(85, ((touch.clientY - rect.top) / rect.height) * 100));
-      main.style.gridTemplateRows = pct + '% 6px ' + (100 - pct) + '%';
+      mainEl.style.gridTemplateRows = pct + '% 6px ' + (100 - pct) + '%';
     } else {
       const pct = Math.max(15, Math.min(85, ((touch.clientX - rect.left) / rect.width) * 100));
-      main.style.gridTemplateColumns = pct + '% 6px ' + (100 - pct) + '%';
+      mainEl.style.gridTemplateColumns = pct + '% 6px ' + (100 - pct) + '%';
     }
   }, { passive: true });
   document.addEventListener('touchend', () => {
@@ -723,35 +1207,13 @@ main {
     divider.classList.remove('dragging');
   });
 
-  // ── Warn before leaving ───────────────────────
+  // Warn before leaving
   window.addEventListener('beforeunload', (e) => {
-    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+    if (currentView === 'edit' && dirty) { e.preventDefault(); e.returnValue = ''; }
   });
 
   // ── Init ──────────────────────────────────────
-  async function init() {
-    if (currentSlug) {
-      setStatus('cargando ' + currentSlug + '…');
-      try {
-        const r = await fetch('/api/raw/' + currentSlug);
-        if (!r.ok) throw new Error('http ' + r.status);
-        editor.value = await r.text();
-        urlLink.href = location.origin + '/p/' + currentSlug;
-        urlLink.textContent = location.origin + '/p/' + currentSlug;
-        urlPill.classList.add('show');
-        setStatus('editando ' + currentSlug, 'success');
-      } catch (e) {
-        editor.value = DEFAULT_HTML;
-        setStatus('slug no encontrado · nuevo borrador', 'error');
-        currentSlug = null;
-        history.replaceState(null, '', '/');
-      }
-    } else {
-      editor.value = DEFAULT_HTML;
-    }
-    render();
-  }
-  init();
+  route();
 })();
 </script>
 </body>
