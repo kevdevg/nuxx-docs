@@ -1,0 +1,26 @@
+services:
+  htmlpaste:
+    build: .
+    # Alternative once you push an image:
+    # image: ghcr.io/youruser/htmlpaste:latest
+    container_name: htmlpaste
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      # Public base URL used to construct returned links (optional).
+      # If unset, the server uses the Host header from the request,
+      # which works fine behind a reverse proxy that sets X-Forwarded-Proto.
+      PUBLIC_URL: ""
+
+      # Optional bearer token. If set, /api/publish requires
+      # `Authorization: Bearer <token>`. The editor UI will prompt
+      # for the token on first publish and store it in localStorage.
+      PUBLISH_TOKEN: ""
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3

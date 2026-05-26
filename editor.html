@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Nuxx docs — Editor y pastebin de HTML autoalojado. Escribe, previsualiza y publica HTML con un solo clic.">
+<title>Nuxx docs</title>
+
+<!-- Favicons -->
+<link rel="icon" type="image/png" sizes="96x96" href="https://assets.nuxx.app/nux/favicon/favicon-96x96.png" />
+<link rel="icon" type="image/svg+xml" href="https://assets.nuxx.app/nux/favicon/favicon.svg" />
+<link rel="shortcut icon" href="https://assets.nuxx.app/nux/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="https://assets.nuxx.app/nux/favicon/apple-touch-icon.png" />
+<link rel="manifest" href="https://assets.nuxx.app/nux/favicon/site.webmanifest" />
+
+<!-- Fonts: Montserrat (headings/brand) + Inter (UI/body) + JetBrains Mono (code editor) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================
+   NUX Design System — Design Tokens
+   ============================================ */
+:root {
+  /* Core Palette */
+  --nux-purple: #3C004F;
+  --nux-yellow: #FFC700;
+  --nux-dark: #1a0b2e;
+  --nux-light: #f3f4f6;
+
+  /* Semantic tokens (dark mode default) */
+  --bg-primary: var(--nux-dark);
+  --bg-surface: rgba(60, 0, 79, 0.45);
+  --bg-editor: #120822;
+  --bg-header: rgba(60, 0, 79, 0.72);
+  --text-primary: #f3f4f6;
+  --text-secondary: #a78bba;
+  --text-muted: #6b5280;
+  --border-subtle: rgba(255, 199, 0, 0.12);
+  --border-hover: rgba(255, 199, 0, 0.35);
+  --accent: var(--nux-yellow);
+  --accent-glow: rgba(255, 199, 0, 0.15);
+  --shadow-header: 0 1px 24px rgba(60, 0, 79, 0.45), 0 1px 0 rgba(255, 199, 0, 0.06);
+  --preview-bg: #ffffff;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 0.15s var(--ease-out);
+  --transition-normal: 0.25s var(--ease-out);
+}
+
+/* Light mode overrides */
+[data-theme="light"] {
+  --bg-primary: #f0edf4;
+  --bg-surface: rgba(255, 255, 255, 0.7);
+  --bg-editor: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.82);
+  --text-primary: #1a0b2e;
+  --text-secondary: #6b5280;
+  --text-muted: #a78bba;
+  --border-subtle: rgba(60, 0, 79, 0.1);
+  --border-hover: rgba(60, 0, 79, 0.25);
+  --shadow-header: 0 1px 24px rgba(60, 0, 79, 0.08), 0 1px 0 rgba(60, 0, 79, 0.04);
+  --preview-bg: #ffffff;
+}
+
+/* ============================================
+   Base Reset
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+/* ============================================
+   Header Bar — Glassmorphism
+   ============================================ */
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--bg-header);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  height: 52px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-header);
+  z-index: 10;
+  transition: background var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+  text-decoration: none;
+}
+.brand-logo {
+  height: 28px;
+  width: auto;
+  transition: transform var(--transition-normal);
+}
+.brand:hover .brand-logo {
+  transform: scale(1.06);
+}
+.brand-name {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+.brand-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 2px 7px;
+  border-radius: 4px;
+  line-height: 1;
+  margin-left: -4px;
+}
+
+.spacer { flex: 1; }
+
+/* ============================================
+   Buttons — NUX System
+   ============================================ */
+button {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 7px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+}
+button:hover {
+  border-color: var(--border-hover);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+button:active {
+  transform: scale(0.96);
+}
+
+/* Primary button */
+button.primary {
+  background: var(--nux-yellow);
+  color: var(--nux-purple);
+  border-color: var(--nux-yellow);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  padding: 7px 20px;
+  box-shadow: 0 2px 12px rgba(255, 199, 0, 0.2);
+}
+button.primary:hover {
+  background: #ffe066;
+  border-color: #ffe066;
+  color: var(--nux-purple);
+  box-shadow: 0 4px 20px rgba(255, 199, 0, 0.35);
+  transform: translateY(-1px);
+}
+button.primary:active {
+  transform: scale(0.96) translateY(0);
+  box-shadow: 0 1px 6px rgba(255, 199, 0, 0.15);
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none !important;
+}
+button:disabled:hover {
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.theme-toggle:hover {
+  border-color: var(--border-hover);
+  background: var(--accent-glow);
+  transform: rotate(20deg) scale(1.05);
+}
+
+/* ============================================
+   URL Pill — Published link
+   ============================================ */
+.url-pill {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  max-width: 50ch;
+  overflow: hidden;
+  animation: fadeSlideIn 0.3s var(--ease-out);
+}
+.url-pill.show { display: flex; }
+.url-pill .link-icon {
+  color: var(--accent);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.url-pill a {
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.url-pill a:hover { text-decoration: underline; }
+.copy-btn {
+  font-size: 10px;
+  padding: 3px 10px;
+  color: var(--text-muted);
+  border-radius: 6px;
+}
+
+/* ============================================
+   Status — Micro-label pattern
+   ============================================ */
+.status {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+.status.error { color: #f43f5e; }
+.status.success { color: #34d399; }
+
+/* Keyboard shortcut badge */
+.kbd {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 3px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================
+   Main Layout — Split Pane
+   ============================================ */
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 6px 1fr;
+  min-height: 0;
+}
+
+.pane {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pane-label {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.7;
+}
+
+/* Editor textarea */
+.editor {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-editor);
+  color: var(--text-primary);
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 16px;
+  tab-size: 2;
+  caret-color: var(--accent);
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+.editor::selection {
+  background: rgba(255, 199, 0, 0.2);
+  color: inherit;
+}
+.editor::-webkit-scrollbar { width: 8px; }
+.editor::-webkit-scrollbar-track { background: transparent; }
+.editor::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 186, 0.25);
+  border-radius: 4px;
+}
+.editor::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 139, 186, 0.45);
+}
+
+/* Divider / Splitter */
+.divider {
+  background: var(--border-subtle);
+  cursor: col-resize;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  position: relative;
+}
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 32px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  opacity: 0.4;
+  transition: opacity var(--transition-fast), height var(--transition-fast);
+}
+.divider:hover,
+.divider.dragging {
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.divider:hover::after,
+.divider.dragging::after {
+  opacity: 0;
+}
+
+/* Preview pane */
+.preview-wrap {
+  background: var(--preview-bg);
+  border-left: none;
+}
+.preview-frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+  display: block;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 199, 0, 0); }
+  50% { box-shadow: 0 0 16px 2px rgba(255, 199, 0, 0.15); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   Responsive — Mobile
+   ============================================ */
+@media (max-width: 760px) {
+  header {
+    gap: 8px;
+    padding: 0 10px;
+    height: 48px;
+  }
+  .brand-name { font-size: 13px; }
+  .brand-tag { display: none; }
+  .kbd { display: none; }
+  .url-pill { display: none !important; }
+
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 6px 1fr;
+  }
+  .divider {
+    cursor: row-resize;
+  }
+  .divider::after {
+    width: 32px;
+    height: 2px;
+  }
+  .pane-label {
+    top: 8px;
+    right: 12px;
+  }
+  button {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+  button.primary {
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-logo { height: 22px; }
+  .status { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/" title="Nuxx docs — Inicio">
+    <img src="https://assets.nuxx.app/nux/logo.png" alt="Nuxx" class="brand-logo" />
+    <span class="brand-name">Nuxx docs</span>
+    <span class="brand-tag">editor</span>
+  </a>
+  <div class="status" id="status">borrador local</div>
+  <div class="url-pill" id="urlPill">
+    <span class="link-icon">⛓</span>
+    <a id="urlLink" href="#" target="_blank" rel="noopener"></a>
+    <button class="copy-btn" id="copyBtn">copiar</button>
+  </div>
+  <div class="spacer"></div>
+  <span class="kbd">⌘/Ctrl + ↵</span>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">🌙</button>
+  <button id="newBtn" title="Nuevo borrador">nuevo</button>
+  <button class="primary" id="publishBtn">publicar →</button>
+</header>
+<main id="main">
+  <div class="pane">
+    <span class="pane-label">html</span>
+    <textarea id="editor" class="editor" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+  </div>
+  <div class="divider" id="divider" role="separator" aria-label="Redimensionar paneles"></div>
+  <div class="pane preview-wrap">
+    <span class="pane-label" style="color: #999">preview</span>
+    <iframe id="preview" class="preview-frame" sandbox="allow-scripts allow-forms" title="Vista previa del HTML"></iframe>
+  </div>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const editor = $('editor');
+  const preview = $('preview');
+  const status = $('status');
+  const publishBtn = $('publishBtn');
+  const newBtn = $('newBtn');
+  const urlPill = $('urlPill');
+  const urlLink = $('urlLink');
+  const copyBtn = $('copyBtn');
+  const divider = $('divider');
+  const main = $('main');
+  const themeToggle = $('themeToggle');
+
+  // ── Theme Management ──────────────────────────
+  function getPreferredTheme() {
+    const stored = localStorage.getItem('nuxxdocs_theme');
+    if (stored) return stored;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    localStorage.setItem('nuxxdocs_theme', theme);
+  }
+  applyTheme(getPreferredTheme());
+
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('nuxxdocs_theme')) {
+      applyTheme(e.matches ? 'light' : 'dark');
+    }
+  });
+
+  // ── Default HTML ──────────────────────────────
+  const DEFAULT_HTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi página</title>
+  <style>
+    body{font-family:system-ui,-apple-system,sans-serif;max-width:640px;margin:4rem auto;padding:0 1.5rem;line-height:1.6;color:#1a1a1a}
+    h1{color:#3C004F;margin-bottom:.5rem}
+    a{color:#3C004F}
+  </style>
+</head>
+<body>
+  <h1>Hola mundo</h1>
+  <p>Escribe HTML a la izquierda y pulsa <strong>publicar</strong> para obtener un link compartible.</p>
+</body>
+</html>`;
+
+  const editMatch = location.pathname.match(/^\/e\/([a-zA-Z0-9_-]+)$/);
+  let currentSlug = editMatch ? editMatch[1] : null;
+  let dirty = false;
+
+  function setStatus(msg, type) {
+    status.textContent = msg;
+    status.className = 'status' + (type ? ' ' + type : '');
+  }
+
+  // ── Live Preview ──────────────────────────────
+  let renderTimer = null;
+  function scheduleRender() {
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = setTimeout(render, 180);
+  }
+  function render() {
+    preview.srcdoc = editor.value;
+  }
+
+  editor.addEventListener('input', () => {
+    dirty = true;
+    setStatus(currentSlug ? 'editando ' + currentSlug + ' · sin guardar' : 'borrador local');
+    scheduleRender();
+  });
+
+  editor.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = editor.selectionStart, end = editor.selectionEnd;
+      editor.value = editor.value.slice(0, s) + '  ' + editor.value.slice(end);
+      editor.selectionStart = editor.selectionEnd = s + 2;
+      dirty = true;
+      scheduleRender();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      publish();
+    }
+  });
+
+  // ── Publish ───────────────────────────────────
+  async function publish() {
+    if (!editor.value.trim()) {
+      setStatus('vacío', 'error');
+      return;
+    }
+    publishBtn.disabled = true;
+    setStatus('publicando…');
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('htmlpaste_token');
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const body = JSON.stringify({
+        html: editor.value,
+        slug: currentSlug || undefined,
+      });
+      const r = await fetch('/api/publish', { method: 'POST', headers, body });
+      if (r.status === 401) {
+        localStorage.removeItem('htmlpaste_token');
+        const t = prompt('Este servidor requiere un token de publicación:');
+        if (t) {
+          localStorage.setItem('htmlpaste_token', t.trim());
+          publishBtn.disabled = false;
+          return publish();
+        }
+        throw new Error('token requerido');
+      }
+      if (!r.ok) {
+        const txt = await r.text();
+        throw new Error(txt.trim() || ('http ' + r.status));
+      }
+      const data = await r.json();
+      currentSlug = data.slug;
+      dirty = false;
+      urlLink.href = data.url;
+      urlLink.textContent = data.url;
+      urlPill.classList.add('show');
+      setStatus('publicado · ' + currentSlug, 'success');
+      history.replaceState(null, '', '/e/' + data.slug);
+    } catch (err) {
+      setStatus('error: ' + err.message, 'error');
+    } finally {
+      publishBtn.disabled = false;
+    }
+  }
+  publishBtn.addEventListener('click', publish);
+
+  // ── New Draft ─────────────────────────────────
+  newBtn.addEventListener('click', () => {
+    if (dirty && !confirm('¿descartar cambios sin publicar?')) return;
+    currentSlug = null;
+    dirty = false;
+    editor.value = DEFAULT_HTML;
+    urlPill.classList.remove('show');
+    setStatus('borrador local');
+    history.replaceState(null, '', '/');
+    render();
+  });
+
+  // ── Copy URL ──────────────────────────────────
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(urlLink.href);
+      copyBtn.textContent = '¡copiado!';
+      setTimeout(() => copyBtn.textContent = 'copiar', 1500);
+    } catch (e) {
+      urlLink.focus();
+    }
+  });
+
+  // ── Splitter Drag ─────────────────────────────
+  let dragging = false;
+  divider.addEventListener('mousedown', (e) => {
+    dragging = true;
+    divider.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const rect = main.getBoundingClientRect();
+    const pct = Math.max(15, Math.min(85, ((e.clientX - rect.left) / rect.width) * 100));
+    main.style.gridTemplateColumns = pct + '% 6px ' + (100 - pct) + '%';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    divider.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  // Touch support for mobile splitter
+  divider.addEventListener('touchstart', (e) => {
+    dragging = true;
+    divider.classList.add('dragging');
+    e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const rect = main.getBoundingClientRect();
+    const touch = e.touches[0];
+    // Mobile: vertical split
+    if (window.innerWidth <= 760) {
+      const pct = Math.max(15, Math.min(85, ((touch.clientY - rect.top) / rect.height) * 100));
+      main.style.gridTemplateRows = pct + '% 6px ' + (100 - pct) + '%';
+    } else {
+      const pct = Math.max(15, Math.min(85, ((touch.clientX - rect.left) / rect.width) * 100));
+      main.style.gridTemplateColumns = pct + '% 6px ' + (100 - pct) + '%';
+    }
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    divider.classList.remove('dragging');
+  });
+
+  // ── Warn before leaving ───────────────────────
+  window.addEventListener('beforeunload', (e) => {
+    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  // ── Init ──────────────────────────────────────
+  async function init() {
+    if (currentSlug) {
+      setStatus('cargando ' + currentSlug + '…');
+      try {
+        const r = await fetch('/api/raw/' + currentSlug);
+        if (!r.ok) throw new Error('http ' + r.status);
+        editor.value = await r.text();
+        urlLink.href = location.origin + '/p/' + currentSlug;
+        urlLink.textContent = location.origin + '/p/' + currentSlug;
+        urlPill.classList.add('show');
+        setStatus('editando ' + currentSlug, 'success');
+      } catch (e) {
+        editor.value = DEFAULT_HTML;
+        setStatus('slug no encontrado · nuevo borrador', 'error');
+        currentSlug = null;
+        history.replaceState(null, '', '/');
+      }
+    } else {
+      editor.value = DEFAULT_HTML;
+    }
+    render();
+  }
+  init();
+})();
+</script>
+</body>
+</html>

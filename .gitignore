@@ -1,0 +1,19 @@
+# Build output
+htmlpaste
+
+# Data directory (runtime pastes)
+data/
+
+# Archives
+htmlpaste.tar.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
