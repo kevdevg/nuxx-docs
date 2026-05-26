@@ -334,6 +334,14 @@ button:disabled:hover { border-color: var(--border-subtle); color: var(--text-pr
   color: var(--text-primary);
   margin-bottom: 4px;
   word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.doc-card-lock {
+  font-size: 13px;
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 .doc-card-slug {
   font-size: 11px;
@@ -404,6 +412,7 @@ button:disabled:hover { border-color: var(--border-subtle); color: var(--text-pr
 }
 .name-group { flex: 1; min-width: 0; }
 .slug-group { flex: 0 0 auto; min-width: 180px; }
+.pw-group { flex: 0 0 auto; min-width: 200px; }
 .name-label {
   display: block;
   font-size: 9px;
@@ -437,6 +446,64 @@ button:disabled:hover { border-color: var(--border-subtle); color: var(--text-pr
 }
 .slug-input { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 .slug-input.hidden { display: none; }
+
+/* Password toggle */
+.pw-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  cursor: pointer;
+  user-select: none;
+}
+.pw-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+.pw-toggle-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.pw-input-wrap { display: none; }
+.pw-input-wrap.show { display: block; }
+.pw-input {
+  font-size: 12px;
+  padding: 8px 12px;
+}
+.pw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-left: 6px;
+}
+.pw-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.pw-status-icon { font-size: 14px; }
+.pw-remove-btn {
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--danger);
+  border-color: rgba(244, 63, 94, 0.25);
+}
+.pw-remove-btn:hover {
+  background: var(--danger-glow);
+  border-color: var(--danger);
+}
 
 /* Status */
 .status {
@@ -678,6 +745,31 @@ main {
       </div>
       <input type="text" id="slugInput" class="input-field slug-input hidden" placeholder="mi-documento" />
     </div>
+    <div class="pw-group" id="pwGroup">
+      <label class="name-label">Contraseña</label>
+      <!-- New doc: toggle + input -->
+      <div id="pwNewControls">
+        <label class="pw-toggle">
+          <input type="checkbox" id="pwToggle" />
+          <span class="pw-toggle-label">🔒 Proteger con contraseña</span>
+        </label>
+        <div id="pwInputWrap" class="pw-input-wrap">
+          <input type="password" id="pwInput" class="input-field pw-input" placeholder="Contraseña del documento" autocomplete="new-password" />
+        </div>
+      </div>
+      <!-- Existing doc: status + change/remove -->
+      <div id="pwExistingControls" style="display:none">
+        <div class="pw-status" id="pwStatus">
+          <span class="pw-status-icon">🔒</span>
+          <span>Protegido</span>
+          <button id="pwChangeBtn" style="padding:2px 8px;font-size:10px">cambiar</button>
+          <button id="pwRemoveBtn" class="pw-remove-btn">quitar</button>
+        </div>
+        <div id="pwChangeWrap" class="pw-input-wrap">
+          <input type="password" id="pwChangeInput" class="input-field pw-input" placeholder="Nueva contraseña" autocomplete="new-password" />
+        </div>
+      </div>
+    </div>
   </div>
   <main id="main">
     <div class="pane">
@@ -717,6 +809,17 @@ main {
   const slugDisplay = $('slugDisplay');
   const slugInput = $('slugInput');
   const slugEditBtn = $('slugEditBtn');
+
+  // Password elements
+  const pwToggle = $('pwToggle');
+  const pwInputWrap = $('pwInputWrap');
+  const pwInput = $('pwInput');
+  const pwNewControls = $('pwNewControls');
+  const pwExistingControls = $('pwExistingControls');
+  const pwChangeBtn = $('pwChangeBtn');
+  const pwRemoveBtn = $('pwRemoveBtn');
+  const pwChangeWrap = $('pwChangeWrap');
+  const pwChangeInput = $('pwChangeInput');
 
   // Dashboard elements
   const docGrid = $('docGrid');
@@ -871,7 +974,7 @@ main {
 
     docGrid.innerHTML = docs.map(doc => `
       <div class="doc-card" data-slug="${escapeAttr(doc.slug)}" data-name="${escapeAttr(doc.name)}">
-        <h3 class="doc-card-name">${escapeHtml(doc.name)}</h3>
+        <h3 class="doc-card-name">${escapeHtml(doc.name)}${doc.has_password ? '<span class="doc-card-lock" title="Protegido con contraseña">🔒</span>' : ''}</h3>
         <span class="doc-card-slug">/${escapeHtml(doc.slug)}</span>
         <div class="doc-card-meta">
           <span>Creado: ${formatDate(doc.created_at)}</span>
@@ -938,6 +1041,8 @@ main {
   let currentSlug = null;
   let dirty = false;
   let customSlugMode = false;
+  let docHasPassword = false;
+  let removePassword = false;
 
   const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="es">
@@ -960,6 +1065,8 @@ main {
     currentSlug = slug || null;
     dirty = false;
     customSlugMode = false;
+    docHasPassword = false;
+    removePassword = false;
     slugInput.classList.add('hidden');
     slugDisplay.classList.remove('hidden');
 
@@ -976,6 +1083,7 @@ main {
           const meta = await metaR.json();
           docNameInput.value = meta.name || '';
           slugPreview.textContent = meta.slug;
+          docHasPassword = !!meta.has_password;
         } else {
           docNameInput.value = '';
           slugPreview.textContent = currentSlug;
@@ -986,6 +1094,8 @@ main {
         urlLink.textContent = location.origin + '/p/' + currentSlug;
         urlPill.classList.add('show');
         setStatus('editando · ' + currentSlug, 'success');
+        // Show password controls for existing doc
+        showPasswordControls();
       } catch {
         resetEditor();
         setStatus('documento no encontrado', 'error');
@@ -997,10 +1107,27 @@ main {
     render();
   }
 
+  function showPasswordControls() {
+    if (docHasPassword) {
+      pwNewControls.style.display = 'none';
+      pwExistingControls.style.display = '';
+      pwChangeWrap.classList.remove('show');
+      pwChangeInput.value = '';
+    } else {
+      pwNewControls.style.display = '';
+      pwExistingControls.style.display = 'none';
+      pwToggle.checked = false;
+      pwInputWrap.classList.remove('show');
+      pwInput.value = '';
+    }
+  }
+
   function resetEditor() {
     currentSlug = null;
     dirty = false;
     customSlugMode = false;
+    docHasPassword = false;
+    removePassword = false;
     editor.value = DEFAULT_HTML;
     docNameInput.value = '';
     slugPreview.textContent = 'se genera automáticamente';
@@ -1010,6 +1137,14 @@ main {
     slugEditBtn.style.display = '';
     deleteBtn.style.display = 'none';
     urlPill.classList.remove('show');
+    // Reset password UI
+    pwNewControls.style.display = '';
+    pwExistingControls.style.display = 'none';
+    pwToggle.checked = false;
+    pwInputWrap.classList.remove('show');
+    pwInput.value = '';
+    pwChangeInput.value = '';
+    pwChangeWrap.classList.remove('show');
     setStatus('nuevo documento');
   }
 
@@ -1083,6 +1218,15 @@ main {
         payload.slug = currentSlug;
       } else if (customSlugMode && slugInput.value.trim()) {
         payload.slug = slugInput.value.trim();
+      }
+
+      // Password handling
+      if (removePassword) {
+        payload.password = '__REMOVE__';
+      } else if (docHasPassword && pwChangeWrap.classList.contains('show') && pwChangeInput.value) {
+        payload.password = pwChangeInput.value;
+      } else if (!docHasPassword && pwToggle.checked && pwInput.value) {
+        payload.password = pwInput.value;
       }
 
       const r = await fetch('/api/publish', {
@@ -1205,6 +1349,39 @@ main {
     if (!dragging) return;
     dragging = false;
     divider.classList.remove('dragging');
+  });
+
+  // ── Password UI handlers ──────────────────────
+  pwToggle.addEventListener('change', () => {
+    if (pwToggle.checked) {
+      pwInputWrap.classList.add('show');
+      pwInput.focus();
+    } else {
+      pwInputWrap.classList.remove('show');
+      pwInput.value = '';
+    }
+  });
+
+  pwChangeBtn.addEventListener('click', () => {
+    pwChangeWrap.classList.toggle('show');
+    if (pwChangeWrap.classList.contains('show')) {
+      pwChangeInput.focus();
+    } else {
+      pwChangeInput.value = '';
+    }
+  });
+
+  pwRemoveBtn.addEventListener('click', () => {
+    if (!confirm('¿Quitar la contraseña de este documento?\nEl documento será accesible públicamente.')) return;
+    removePassword = true;
+    docHasPassword = false;
+    pwNewControls.style.display = '';
+    pwExistingControls.style.display = 'none';
+    pwToggle.checked = false;
+    pwInputWrap.classList.remove('show');
+    pwInput.value = '';
+    dirty = true;
+    setStatus('contraseña eliminada · publicar para guardar');
   });
 
   // Warn before leaving
