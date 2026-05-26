@@ -10,13 +10,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o /htmlpaste ./...
 
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates tzdata && \
+RUN apk add --no-cache ca-certificates tzdata su-exec && \
     addgroup -S app && adduser -S -G app app && \
     mkdir -p /data && chown app:app /data
 COPY --from=builder /htmlpaste /usr/local/bin/htmlpaste
-USER app
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 VOLUME ["/data"]
 EXPOSE 8080
 ENV DATA_DIR=/data \
     ADDR=:8080
-ENTRYPOINT ["/usr/local/bin/htmlpaste"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/usr/local/bin/htmlpaste"]
