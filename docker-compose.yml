@@ -13,12 +13,12 @@ services:
       # Public base URL used to construct returned links (optional).
       # If unset, the server uses the Host header from the request,
       # which works fine behind a reverse proxy that sets X-Forwarded-Proto.
-      PUBLIC_URL: ""
+      PUBLIC_URL: ${PUBLIC_URL:-}
 
       # Optional bearer token. If set, /api/publish requires
       # `Authorization: Bearer <token>`. The editor UI will prompt
       # for the token on first publish and store it in localStorage.
-      PUBLISH_TOKEN: ""
+      PUBLISH_TOKEN: ${PUBLISH_TOKEN:-}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
