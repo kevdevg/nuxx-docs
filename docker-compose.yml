@@ -3,10 +3,16 @@ version: '3.8'
 services:
   app:
     build: .
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     volumes:
       - ./data:/data
     environment:
-      - JWT_SECRET=change-this-in-production
+      - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
