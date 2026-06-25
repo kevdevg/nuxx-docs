@@ -22,17 +22,25 @@ type DriveFile struct {
 
 func getDriveClient() (*drive.Service, error) {
 	ctx := context.Background()
-	// Uses the GOOGLE_APPLICATION_CREDENTIALS environment variable
-	// Or falls back to other auth methods if configured
-	credentialsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if credentialsFile == "" {
-		// Fallback to checking a local file just in case
-		if _, err := os.Stat("google-credentials.json"); err == nil {
-			return drive.NewService(ctx, option.WithCredentialsFile("google-credentials.json"))
-		}
-		return nil, fmt.Errorf("no credentials found")
+	
+	// 1. Try reading raw JSON from environment variable (Best for Coolify/Docker)
+	rawJSON := os.Getenv("GOOGLE_CREDENTIALS_JSON")
+	if rawJSON != "" {
+		return drive.NewService(ctx, option.WithCredentialsJSON([]byte(rawJSON)), option.WithScopes(drive.DriveReadonlyScope))
 	}
-	return drive.NewService(ctx)
+
+	// 2. Try default path env var
+	credentialsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if credentialsFile != "" {
+		return drive.NewService(ctx, option.WithScopes(drive.DriveReadonlyScope)) // This will automatically use the env var
+	}
+
+	// 3. Fallback to local file
+	if _, err := os.Stat("google-credentials.json"); err == nil {
+		return drive.NewService(ctx, option.WithCredentialsFile("google-credentials.json"), option.WithScopes(drive.DriveReadonlyScope))
+	}
+	
+	return nil, fmt.Errorf("no credentials found")
 }
 
 func handleDriveFiles(w http.ResponseWriter, r *http.Request) {

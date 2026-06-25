@@ -76,5 +76,10 @@ func createTables() {
 	if err != nil {
 		log.Fatalf("Error creating tables: %v", err)
 	}
+
+	// Auto-migrations for new columns (ignore errors if they already exist)
+	db.Exec("ALTER TABLE assets ADD COLUMN is_public BOOLEAN DEFAULT 0;")
+	db.Exec("ALTER TABLE projects ADD COLUMN gdrive_folder_id TEXT DEFAULT '';")
+
 	log.Println("Database tables initialized successfully.")
 }
