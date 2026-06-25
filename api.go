@@ -7,10 +7,11 @@ import (
 )
 
 type Project struct {
-	ID        int    `json:"id"`
-	UserID    int    `json:"user_id"`
-	Name      string `json:"name"`
-	CreatedAt string `json:"created_at"`
+	ID             int    `json:"id"`
+	UserID         int    `json:"user_id"`
+	Name           string `json:"name"`
+	GDriveFolderID string `json:"gdrive_folder_id"`
+	CreatedAt      string `json:"created_at"`
 }
 
 type Folder struct {
@@ -46,7 +47,7 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r)
 
 	if r.Method == http.MethodGet {
-		rows, err := db.Query("SELECT id, name, created_at FROM projects WHERE user_id = ?", userID)
+		rows, err := db.Query("SELECT id, name, gdrive_folder_id, created_at FROM projects WHERE user_id = ?", userID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -56,7 +57,7 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 		var projects []Project
 		for rows.Next() {
 			var p Project
-			if err := rows.Scan(&p.ID, &p.Name, &p.CreatedAt); err != nil {
+			if err := rows.Scan(&p.ID, &p.Name, &p.GDriveFolderID, &p.CreatedAt); err != nil {
 				continue
 			}
 			p.UserID = userID
@@ -274,6 +275,42 @@ func handleDocuments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func handleProjectDrive(w http.ResponseWriter, r *http.Request) {
+	userID := getUserID(r)
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		ProjectID      int    `json:"project_id"`
+		GDriveFolderID string `json:"gdrive_folder_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	// Verify ownership
+	var dummy int
+	err := db.QueryRow("SELECT id FROM projects WHERE id = ? AND user_id = ?", req.ProjectID, userID).Scan(&dummy)
+	if err == sql.ErrNoRows {
+		http.Error(w, "project not found", http.StatusNotFound)
+		return
+	}
+
+	_, err = db.Exec("UPDATE projects SET gdrive_folder_id = ? WHERE id = ?", req.GDriveFolderID, req.ProjectID)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
 
 func handlePublicHtml(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

@@ -51,6 +51,8 @@ func main() {
 	mux.HandleFunc("/api/auth/logout", handleLogout)
 
 	mux.HandleFunc("/api/projects", authMiddleware(handleProjects))
+	mux.HandleFunc("/api/projects/drive", authMiddleware(handleProjectDrive))
+	mux.HandleFunc("/api/drive", authMiddleware(handleDriveFiles))
 	mux.HandleFunc("/api/folders", authMiddleware(handleFolders))
 	mux.HandleFunc("/api/directory", authMiddleware(handleDirectory))
 	mux.HandleFunc("/api/documents", authMiddleware(handleDocuments))

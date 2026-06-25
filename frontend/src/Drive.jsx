@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
-import { Folder, FileText, Image as ImageIcon, File as FileIcon, Plus, LayoutDashboard, LogOut, PenTool, Globe } from 'lucide-react';
+import { Folder, FileText, Image as ImageIcon, File as FileIcon, Plus, LayoutDashboard, LogOut, PenTool, Globe, Cloud, Link as LinkIcon } from 'lucide-react';
 
 export default function Drive() {
   const { projectId, folderId } = useParams();
@@ -12,9 +12,12 @@ export default function Drive() {
   const [projects, setProjects] = useState([]);
   const [folders, setFolders] = useState([]);
   const [assets, setAssets] = useState([]);
+  const [driveFiles, setDriveFiles] = useState([]);
   
   const [newProjectName, setNewProjectName] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
+  const [linkingDrive, setLinkingDrive] = useState(false);
+  const [driveFolderIdInput, setDriveFolderIdInput] = useState('');
 
   useEffect(() => {
     fetchProjects();
@@ -23,9 +26,11 @@ export default function Drive() {
   useEffect(() => {
     if (projectId) {
       fetchDirectory();
+      fetchDriveFiles();
     } else {
       setFolders([]);
       setAssets([]);
+      setDriveFiles([]);
     }
   }, [projectId, folderId]);
 
@@ -47,6 +52,39 @@ export default function Drive() {
       setAssets(res.data.assets);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const fetchDriveFiles = async () => {
+    // Only fetch drive files at the root of the project for now
+    if (folderId) {
+      setDriveFiles([]);
+      return;
+    }
+    try {
+      const res = await axios.get(`/api/drive?project_id=${projectId}`);
+      setDriveFiles(res.data || []);
+    } catch (err) {
+      console.error('Error fetching drive files', err);
+      setDriveFiles([]);
+    }
+  };
+
+  const linkDriveFolder = async (e) => {
+    e.preventDefault();
+    if (!driveFolderIdInput) return;
+    try {
+      await axios.post('/api/projects/drive', {
+        project_id: parseInt(projectId),
+        gdrive_folder_id: driveFolderIdInput
+      });
+      setLinkingDrive(false);
+      setDriveFolderIdInput('');
+      fetchProjects(); // to update currentProject.gdrive_folder_id
+      fetchDriveFiles();
+    } catch (err) {
+      console.error(err);
+      alert('Error linking Drive folder');
     }
   };
 
@@ -182,6 +220,33 @@ export default function Drive() {
           
           {projectId && (
             <div style={{ display: 'flex', gap: '12px' }}>
+              {!currentProject?.gdrive_folder_id ? (
+                linkingDrive ? (
+                  <form onSubmit={linkDriveFolder} style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      className="input-glass" 
+                      placeholder="ID de carpeta Drive..." 
+                      value={driveFolderIdInput}
+                      onChange={e => setDriveFolderIdInput(e.target.value)}
+                      style={{ width: '180px', fontSize: '12px', padding: '6px 12px' }}
+                    />
+                    <button type="submit" className="btn-primary" style={{ padding: '6px 12px', fontSize: '13px' }}>Vincular</button>
+                    <button type="button" onClick={() => setLinkingDrive(false)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}>Cancelar</button>
+                  </form>
+                ) : (
+                  <button onClick={() => setLinkingDrive(true)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <Cloud size={16} color="#3b82f6" /> Vincular Drive
+                  </button>
+                )
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                  <Cloud size={14} /> Drive Conectado
+                </div>
+              )}
+              
+              <div style={{ width: '1px', background: 'var(--glass-border)', margin: '0 4px' }}></div>
+
               <button onClick={() => createAsset('document')} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                 <FileText size={16} /> Documento
               </button>
@@ -264,6 +329,37 @@ export default function Drive() {
                       <Icon size={40} color={color} />
                       <span style={{ fontWeight: 500, textAlign: 'center' }}>{a.title}</span>
                     </Link>
+                  )
+                })}
+
+                {/* Drive Files */}
+                {!folderId && driveFiles.map(f => {
+                  let Icon = FileIcon;
+                  let color = "#94a3b8"; // slate
+                  
+                  if (f.mimeType.includes('image')) {
+                    Icon = ImageIcon;
+                    color = "#10b981"; // emerald
+                  } else if (f.mimeType.includes('folder')) {
+                    Icon = Folder;
+                    color = "#f59e0b"; // amber
+                  } else if (f.mimeType.includes('document')) {
+                    Icon = FileText;
+                    color = "#3b82f6"; // blue
+                  }
+
+                  return (
+                    <a key={f.id} href={f.webViewLink} target="_blank" rel="noreferrer" className="glass-panel" style={{ padding: '20px', textDecoration: 'none', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', cursor: 'pointer', transition: 'transform 0.2s', borderStyle: 'dashed', borderColor: 'rgba(59, 130, 246, 0.4)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                      <div style={{ position: 'relative' }}>
+                        <Icon size={40} color={color} />
+                        <div style={{ position: 'absolute', bottom: -5, right: -5, background: '#1e293b', borderRadius: '50%', padding: '2px' }}>
+                          <Cloud size={12} color="#3b82f6" />
+                        </div>
+                      </div>
+                      <span style={{ fontWeight: 500, textAlign: 'center', fontSize: '14px' }} title={f.name}>
+                        {f.name.length > 20 ? f.name.substring(0, 18) + '...' : f.name}
+                      </span>
+                    </a>
                   )
                 })}
               </div>
