@@ -1,23 +1,26 @@
-# syntax=docker/dockerfile:1.7
+# Stage 1: Build the React frontend
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
 
-FROM golang:1.22-alpine AS builder
-WORKDIR /src
-COPY go.mod ./
+# Stage 2: Build the Go backend
+FROM golang:1.22-alpine AS backend-builder
+WORKDIR /app
+COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build \
-    -trimpath -ldflags="-s -w" \
-    -o /htmlpaste ./...
+# Copy the built frontend into the go tree before building so go:embed picks it up
+COPY --from=frontend-builder /app/dist ./frontend/dist
+RUN CGO_ENABLED=0 GOOS=linux go build -o nuxx-docs .
 
-FROM alpine:3.20
-RUN apk add --no-cache ca-certificates tzdata su-exec && \
-    addgroup -S app && adduser -S -G app app && \
-    mkdir -p /data && chown app:app /data
-COPY --from=builder /htmlpaste /usr/local/bin/htmlpaste
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-VOLUME ["/data"]
+# Stage 3: Final lightweight image
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates tzdata
+WORKDIR /app
+COPY --from=backend-builder /app/nuxx-docs .
 EXPOSE 8080
-ENV DATA_DIR=/data \
-    ADDR=:8080
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["/usr/local/bin/htmlpaste"]
+VOLUME ["/data"]
+CMD ["./nuxx-docs", "-addr", ":8080", "-data", "/data"]
