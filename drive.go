@@ -36,7 +36,7 @@ func getDriveClient() (*drive.Service, error) {
 }
 
 func handleDriveFiles(w http.ResponseWriter, r *http.Request) {
-	userID := getUserID(r)
+	_ = getUserID(r)
 
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

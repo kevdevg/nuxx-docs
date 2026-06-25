@@ -100,7 +100,7 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleFolders(w http.ResponseWriter, r *http.Request) {
-	userID := getUserID(r)
+	_ = getUserID(r)
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -141,7 +141,7 @@ func handleDirectory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	userID := getUserID(r)
+	_ = getUserID(r)
 	projectIDStr := r.URL.Query().Get("project_id")
 	folderIDStr := r.URL.Query().Get("folder_id")
 
@@ -277,7 +277,7 @@ func handleDocuments(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleProjectDrive(w http.ResponseWriter, r *http.Request) {
-	userID := getUserID(r)
+	_ = getUserID(r)
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
