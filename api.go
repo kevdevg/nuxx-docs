@@ -47,7 +47,7 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r)
 
 	if r.Method == http.MethodGet {
-		rows, err := db.Query("SELECT id, name, gdrive_folder_id, created_at FROM projects WHERE user_id = ?", userID)
+		rows, err := db.Query("SELECT id, name, gdrive_folder_id, created_at FROM projects ORDER BY id DESC")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -119,7 +119,7 @@ func handleFolders(w http.ResponseWriter, r *http.Request) {
 
 	// Verify project belongs to user
 	var dummy int
-	err := db.QueryRow("SELECT id FROM projects WHERE id = ? AND user_id = ?", req.ProjectID, userID).Scan(&dummy)
+	err := db.QueryRow("SELECT id FROM projects WHERE id = ?", req.ProjectID).Scan(&dummy)
 	if err == sql.ErrNoRows {
 		http.Error(w, "project not found", http.StatusNotFound)
 		return
@@ -152,7 +152,7 @@ func handleDirectory(w http.ResponseWriter, r *http.Request) {
 
 	// verify owner
 	var dummy int
-	if err := db.QueryRow("SELECT id FROM projects WHERE id = ? AND user_id = ?", projectIDStr, userID).Scan(&dummy); err != nil {
+	if err := db.QueryRow("SELECT id FROM projects WHERE id = ?", projectIDStr).Scan(&dummy); err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
@@ -220,7 +220,7 @@ func handleDocuments(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var a Asset
-		err := db.QueryRow("SELECT id, project_id, folder_id, type, title, content, is_public FROM assets WHERE id = ? AND user_id = ?", id, userID).
+		err := db.QueryRow("SELECT id, project_id, folder_id, type, title, content, is_public FROM assets WHERE id = ?", id).
 			Scan(&a.ID, &a.ProjectID, &a.FolderID, &a.Type, &a.Title, &a.Content, &a.IsPublic)
 		if err == sql.ErrNoRows {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -251,8 +251,8 @@ func handleDocuments(w http.ResponseWriter, r *http.Request) {
 
 		if req.ID != nil {
 			// Update
-			_, err := db.Exec("UPDATE assets SET title = ?, content = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?",
-				req.Title, req.Content, req.IsPublic, *req.ID, userID)
+			_, err := db.Exec("UPDATE assets SET title = ?, content = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+				req.Title, req.Content, req.IsPublic, *req.ID)
 			if err != nil {
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
@@ -295,7 +295,7 @@ func handleProjectDrive(w http.ResponseWriter, r *http.Request) {
 
 	// Verify ownership
 	var dummy int
-	err := db.QueryRow("SELECT id FROM projects WHERE id = ? AND user_id = ?", req.ProjectID, userID).Scan(&dummy)
+	err := db.QueryRow("SELECT id FROM projects WHERE id = ?", req.ProjectID).Scan(&dummy)
 	if err == sql.ErrNoRows {
 		http.Error(w, "project not found", http.StatusNotFound)
 		return

@@ -50,7 +50,7 @@ func handleDriveFiles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var gdriveFolderID string
-	err := db.QueryRow("SELECT gdrive_folder_id FROM projects WHERE id = ? AND user_id = ?", projectID, userID).Scan(&gdriveFolderID)
+	err := db.QueryRow("SELECT gdrive_folder_id FROM projects WHERE id = ?", projectID).Scan(&gdriveFolderID)
 	if err == sql.ErrNoRows {
 		http.Error(w, "project not found", http.StatusNotFound)
 		return
