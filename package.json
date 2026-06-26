@@ -1,0 +1,13 @@
+{
+  "name": "nuxx",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "ui",
+    "landing"
+  ],
+  "scripts": {},
+  "devDependencies": {
+    "nx": "23.0.1"
+  }
+}

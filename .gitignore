@@ -17,3 +17,9 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+
+
+.nx/cache
+.nx/workspace-data
+.nx/migrate-runs

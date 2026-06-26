@@ -1,0 +1,6 @@
+{
+  "name": "Nux final app",
+  "description": "A comprehensive modular ERP for Nux Agency featuring CRM, Project Management, Finance, and Client Portals with Role-Based Access Control.",
+  "requestFramePermissions": [
+  ]
+}

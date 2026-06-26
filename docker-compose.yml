@@ -5,9 +5,8 @@ services:
     build: .
     expose:
       - "8080"
-    volumes:
-      - ./data:/data
     environment:
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017}
       - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]

@@ -1,26 +1,34 @@
-# Stage 1: Build the React frontend
-FROM node:20-alpine AS frontend-builder
+# Stage 1: Build the React ui
+FROM node:20-alpine AS ui-builder
 WORKDIR /app
-COPY frontend/package*.json ./
+COPY ui/package*.json ./
 RUN npm install
-COPY frontend/ ./
+COPY ui/ ./
 RUN npm run build
 
-# Stage 2: Build the Go backend
+# Stage 2: Build the React landing
+FROM node:20-alpine AS landing-builder
+WORKDIR /app
+COPY landing/package*.json ./
+RUN npm install
+COPY landing/ ./
+RUN npm run build
+
+# Stage 3: Build the Go backend
 FROM golang:alpine AS backend-builder
 WORKDIR /app
-COPY go.mod go.sum ./
+COPY backend/go.mod backend/go.sum ./
 RUN go mod download
-COPY . .
-# Copy the built frontend into the go tree before building so go:embed picks it up
-COPY --from=frontend-builder /app/dist ./frontend/dist
+COPY backend/ ./
+# Copy the built frontends into the go tree before building so go:embed picks it up
+COPY --from=ui-builder /app/dist ./ui/dist
+COPY --from=landing-builder /app/dist ./landing/dist
 RUN CGO_ENABLED=0 GOOS=linux go build -o nuxx-docs .
 
-# Stage 3: Final lightweight image
+# Stage 4: Final lightweight image
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 COPY --from=backend-builder /app/nuxx-docs .
 EXPOSE 8080
-VOLUME ["/data"]
-CMD ["./nuxx-docs", "-addr", ":8080", "-data", "/data"]
+CMD ["./nuxx-docs", "-addr", ":8080"]
